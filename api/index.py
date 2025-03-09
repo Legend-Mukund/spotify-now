@@ -54,6 +54,10 @@ def spotify():
 def home():
     return "UwU"
 
+@app.route("/health")
+def health():
+    return "OK", 200
+
 @app.route("/spotify")
 def spotify():
     code = request.args.get("code")
