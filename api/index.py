@@ -1,13 +1,16 @@
-import spotipy
+import spotipy, dotenv
 from pathlib import Path
 from spotipy import util
 import re, base64, requests, random, os
 from flask import Flask, Response, render_template, request
 
+dotenv.load_dotenv()
+
 cwd = Path.cwd()
 cwd = re.sub(r"\\", r"/", str(cwd))
 CLIENT_ID = os.environ["CLIENT_ID"]
 CLIENT_SECRET = os.environ["CLIENT_SECRET"]
+REFRESH_TOKEN = os.environ["REFRESH_TOKEN"]
 scope = "user-read-playback-state user-read-recently-played"
 redirect_uri = "http://127.0.0.1:5000/spotify"
 
@@ -20,7 +23,7 @@ def get_spotify_token():
             "https://accounts.spotify.com/api/token",
             data={
                 "grant_type": "refresh_token",
-                "refresh_token": os.environ["REFRESH_TOKEN"],
+                "refresh_token": REFRESH_TOKEN,
                 "client_id": CLIENT_ID,
                 "client_secret": CLIENT_SECRET,
             },
