@@ -12,30 +12,31 @@ scope = "user-read-playback-state user-read-recently-played"
 redirect_uri = "http://127.0.0.1:5000/spotify"
 
 app = Flask(__name__)
-try:
-    data = {
-        "grant_type": "refresh_token",
-        "refresh_token": os.environ["REFRESH_TOKEN"],
-    }
 
-    res = requests.post(
-        "https://accounts.spotify.com/api/token",
-        data={
-            "grant_type": "refresh_token",
-            "refresh_token": os.environ["REFRESH_TOKEN"],
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-        },
-    )
-    token = res.json()["access_token"]
-except:
-    token = util.prompt_for_user_token(
-        "", scope, CLIENT_ID, CLIENT_SECRET, redirect_uri, cache_path=f"token.json"
-    )
+# Function to get Spotify token
+def get_spotify_token():
+    try:
+        res = requests.post(
+            "https://accounts.spotify.com/api/token",
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": os.environ["REFRESH_TOKEN"],
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+            },
+        )
+        return res.json()["access_token"]
+    except:
+        return util.prompt_for_user_token(
+            "", scope, CLIENT_ID, CLIENT_SECRET, redirect_uri, cache_path=f"token.json"
+        )
+
+# Initialize Spotify client
+token = get_spotify_token()
 sp = spotipy.Spotify(auth=token)
 
-
-def spotify():
+# Function to fetch Spotify data
+def get_spotify_data():
     try:
         current = sp.current_playback()
         songname = current["item"]["name"]
@@ -49,7 +50,7 @@ def spotify():
         cover = current["items"][0]["track"]["album"]["images"][0]["url"]
         return ["last played", songname, cover, artist]
 
-
+# Routes
 @app.route("/")
 def home():
     return "UwU"
@@ -76,7 +77,7 @@ def spotify():
             f.write(res.text)
         return "Authorization successful! You can close this window."
     else:
-        info = spotify()
+        info = get_spotify_data()  # Call the renamed function
         songname = info[1].replace("&", "&amp;")
         artist = info[3].replace("&", "&amp;")
         response = requests.get(info[2])
